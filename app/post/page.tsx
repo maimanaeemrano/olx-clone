@@ -1,57 +1,53 @@
 "use client";
 import { useState } from "react";
-import { supabase } from "@/lib/supabaseClient"; // agar aapka path alag hai G to ye line change hogi G
+import { supabase } from "@/lib/supabase";
 
 export default function PostAd() {
   const [title, setTitle] = useState("");
   const [price, setPrice] = useState("");
-  const [city, setCity] = useState("Sargodha");
-  const [description, setDescription] = useState("");
-  const [phone, setPhone] = useState("");
+  const [location, setLocation] = useState("Sargodha");
+  const [desc, setDesc] = useState("");
+  const [whatsapp, setWhatsapp] = useState("");
   const [image, setImage] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
 
   const handlePost = async () => {
     if (!title ||!price) { alert("Title Price likho G!"); return; }
     setLoading(true);
-    let image_url = "";
-    try {
-      if (image) {
-        const fileName = `${Date.now()}-${image.name}`;
-        const { error: uploadError } = await supabase.storage.from('ad-images').upload(fileName, image);
-        if (uploadError) throw uploadError;
-        const { data } = supabase.storage.from('ad-images').getPublicUrl(fileName);
-        image_url = data.publicUrl;
+    let imageUrl = "";
+    if (image) {
+      const fileName = `${Date.now()}-${image.name}`;
+      const { data, error } = await supabase.storage.from("ads").upload(fileName, image);
+      if (!error) {
+        const { data: urlData } = supabase.storage.from("ads").getPublicUrl(fileName);
+        imageUrl = urlData.publicUrl;
       }
-      const { error } = await supabase.from('ads').insert([{ title, price: Number(price), city, description, phone, image_url }]);
-      if (error) throw error;
-      alert("MASHALLAH G Ad lag gaya G!");
-      window.location.href = "/";
-    } catch (e: any) {
-      alert("Error G: " + e.message);
     }
+    const { error } = await supabase.from("ads").insert([{ title, price, location, description: desc, whatsapp, image_url: imageUrl }]);
     setLoading(false);
+    if (error) alert("Error: " + error.message);
+    else { alert("MASHALLAH G Ad Post ho gayi G!"); window.location.href = "/"; }
   };
 
   return (
-    <div style={{maxWidth:400, margin:"auto", padding:20}}>
-      <h1>+ Post Your Ad</h1>
-      <input placeholder="Title" value={title} onChange={e=>setTitle(e.target.value)} style={{width:"100%", margin:"10px 0", padding:10}} />
-      <input placeholder="Price - e.g 50000" type="number" value={price} onChange={e=>setPrice(e.target.value)} style={{width:"100%", margin:"10px 0", padding:10}} />
-      <select value={city} onChange={e=>setCity(e.target.value)} style={{width:"100%", margin:"10px 0", padding:10}}>
-        <option>Sargodha</option><option>Lahore</option><option>Karachi</option><option>Islamabad</option><option>All Pakistan</option>
-      </select>
-      <textarea placeholder="Description" value={description} onChange={e=>setDescription(e.target.value)} style={{width:"100%", margin:"10px 0", padding:10}} />
-      <input placeholder="WhatsApp Number" value={phone} onChange={e=>setPhone(e.target.value)} style={{width:"100%", margin:"10px 0", padding:10}} />
+    <div className="max-w-md mx-auto p-4 bg-white rounded-xl shadow mt-6">
+      <h1 className="text-2xl font-bold text-center mb-4">+ Post Your Ad</h1>
 
-      {/* YE NAYA PHOTO WALA BOX HAI G */}
-      <div style={{border:"2px dashed #ccc", padding:15, margin:"10px 0"}}>
-        <label><b>Ad ki Photo G</b></label><br/>
-        <input type="file" accept="image/*" onChange={e=>setImage(e.target.files?.[0] || null)} />
-        {image && <p>Selected: {image.name} G</p>}
+      <div className="mb-3">
+        <label className="font-bold">Ad Photo G (Zaroori)</label>
+        <input type="file" accept="image/*" onChange={(e)=>setImage(e.target.files?.[0]||null)} className="w-full border-2 p-2 rounded-lg mt-1" />
+        {image && <p className="text-green-600 text-sm">✅ {image.name} selected G!</p>}
       </div>
 
-      <button onClick={handlePost} disabled={loading} style={{width:"100%", padding:12, background:"navy", color:"white", borderRadius:20}}>
+      <input value={title} onChange={e=>setTitle(e.target.value)} placeholder="Title - e.g. iPhone 12 for Sale" className="w-full border p-3 rounded-lg mb-3" />
+      <input value={price} onChange={e=>setPrice(e.target.value)} placeholder="Price - e.g. 50000" className="w-full border p-3 rounded-lg mb-3" />
+      <select value={location} onChange={e=>setLocation(e.target.value)} className="w-full border p-3 rounded-lg mb-3">
+        <option>Sargodha</option><option>Lalian</option><option>Lahore</option><option>Faisalabad</option>
+      </select>
+      <textarea value={desc} onChange={e=>setDesc(e.target.value)} placeholder="Description - Kitab kaisi hai, bike ka model..." className="w-full border p-3 rounded-lg mb-3" rows={3}></textarea>
+      <input value={whatsapp} onChange={e=>setWhatsapp(e.target.value)} placeholder="WhatsApp Number - 03XX-XXXXXXX" className="w-full border p-3 rounded-lg mb-3" />
+
+      <button onClick={handlePost} disabled={loading} className="w-full bg-black text-white p-3 rounded-full font-bold">
         {loading? "Posting... G" : "Post Ad Now"}
       </button>
     </div>
