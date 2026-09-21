@@ -1,6 +1,6 @@
 "use client";
 import { useState } from "react";
-import { supabase } from "../lib/supabaseclient";
+import { supabase } from "../lib/supabaseClient";
 
 export default function PostAd() {
   const [title, setTitle] = useState("");

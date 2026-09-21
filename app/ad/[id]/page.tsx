@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
-import { supabase } from "../../lib/supabaseclient";
+import { supabase } from "../../lib/supabaseClient";
 
 export default function AdDetail({ params }: { params: { id: string } }) {
   const [ad, setAd] = useState<any>(null);
