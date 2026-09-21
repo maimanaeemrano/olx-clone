@@ -1,44 +1,28 @@
 "use client";
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabaseClient";
-import Link from "next/link";
-
-export default function Home() {
-  const [ads, setAds] = useState<any[]>([]);
-
-  useEffect(() => {
-    const fetchAds = async () => {
-      const { data } = await supabase.from('ads').select('*').order('created_at', { ascending: false });
-      if (data) setAds(data);
-    };
-    fetchAds();
-  }, []);
-
-  return (
-    <div style={{padding:20}}>
-      <div style={{display:'flex', justifyContent:'space-between', alignItems:'center'}}>
-        <h1 style={{fontSize:24, fontWeight:'bold'}}>SSB Bazaar G</h1>
-        <Link href="/sell" style={{background:'#8B4513', color:'white', padding:'8px 16px', borderRadius:20}}>+ SELL</Link>
-      </div>
-
-      <h2 style={{marginTop:20}}>Fresh Ads ({ads.length}) - All Pakistan</h2>
-      
-      <div style={{display:'grid', gridTemplateColumns:'1fr 1fr', gap:15, marginTop:15}}>
-        {ads.map((ad) => (
-          <div key={ad.id} style={{border:'1px solid #ddd', borderRadius:10, overflow:'hidden'}}>
-            {ad.image_url ? (
-              <img src={ad.image_url} alt={ad.title} style={{width:'100%', height:150, objectFit:'cover'}} />
-            ) : (
-              <div style={{width:'100%', height:150, background:'#eee', display:'flex', alignItems:'center', justifyContent:'center'}}>No Photo G</div>
-            )}
-            <div style={{padding:10}}>
-              <p style={{fontWeight:'bold'}}>Rs {ad.price}</p>
-              <p>{ad.title}</p>
-              <p style={{fontSize:12, color:'gray'}}>{ad.city}</p>
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
+export default function Home(){
+const [ads,setAds]=useState<any[]>([]);
+useEffect(()=>{ (async()=>{
+const {data}=await supabase.from("ads").select("*").order("created_at",{ascending:false});
+if(data) setAds(data);
+})();},[]);
+return(
+<div style={{padding:"15px",maxWidth:"1000px",margin:"auto"}}>
+<h1 style={{fontWeight:"bold",fontSize:"24px",marginBottom:"15px"}}>SSB Bazaar - Student OLX</h1>
+<a href="/post" style={{background:"black",color:"white",padding:"10px 20px",borderRadius:"20px",textDecoration:"none"}}>+ Sell Karo</a>
+<div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:"12px",marginTop:"20px"}}>
+{ads.map((ad)=>(
+<div key={ad.id} onClick={()=>window.location.href=`/ad/${ad.id}`} style={{border:"1px solid #ddd",borderRadius:"12px",overflow:"hidden",cursor:"pointer"}}>
+<img src={ad.image_url} style={{width:"100%",height:"150px",objectFit:"cover"}}/>
+<div style={{padding:"8px"}}>
+<p style={{fontWeight:"bold",fontSize:"14px"}}>{ad.title}</p>
+<p style={{color:"green",fontWeight:"bold"}}>Rs {ad.price}</p>
+<p style={{fontSize:"11px",color:"#777"}}>{ad.location}</p>
+</div>
+</div>
+))}
+</div>
+</div>
+);
 }
