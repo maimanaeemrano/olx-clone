@@ -6,46 +6,100 @@ import Link from "next/link";
 export default function Home() {
   const [ads, setAds] = useState<any[]>([]);
   const [search, setSearch] = useState("");
-  const [city, setCity] = useState("All Pakistan");
+  const [category, setCategory] = useState("All");
+  const [location, setLocation] = useState("All Pakistan");
 
-  async function fetchAds() {
-    const { data } = await supabase.from('ads').select('*').order('created_at', { ascending: false });
-    if (data) setAds(data);
-  }
-  useEffect(() => { fetchAds(); }, []);
+  const categories = ["All", "Mobiles", "Bikes", "Cars", "Electronics", "Home", "Books", "Jobs", "Services"];
 
-  const filteredAds = ads.filter(ad => {
-    const m1 = ad.title.toLowerCase().includes(search.toLowerCase());
-    const m2 = city === "All Pakistan" || (ad.location && ad.location.toLowerCase().includes(city.toLowerCase()));
-    return m1 && m2;
+  useEffect(() => {
+    async function fetchAds() {
+      const { data } = await supabase.from('ads').select('*').order('created_at', { ascending: false });
+      if (data) setAds(data);
+    }
+    fetchAds();
+  }, []);
+
+  const filteredAds = ads.filter((ad: any) => {
+    const matchSearch = ad.title?.toLowerCase().includes(search.toLowerCase());
+    const matchCategory = category === "All" || ad.category === category;
+    const matchLocation = location === "All Pakistan" || ad.location?.toLowerCase().includes(location.toLowerCase());
+    return matchSearch && matchCategory && matchLocation;
   });
 
   return (
     <div className="min-h-screen bg-gray-100">
-      <div className="bg-white p-3 shadow sticky top-0 z-10">
-        <div className="max-w-6xl mx-auto flex items-center justify-between gap-3">
-          <img src="/ssb-logo.png" className="w-[55px] h-[55px] min-w-[55px] aspect-square rounded-full border-2 border-[#00ff88] object-cover" alt="logo" />
-          <div className="flex flex-1 gap-2 max-w-2xl">
-            <select value={city} onChange={e=>setCity(e.target.value)} className="border p-2 rounded w-1/3 bg-white text-sm">
-              <option>All Pakistan</option><option>Sargodha</option><option>Lahore</option><option>Karachi</option><option>Islamabad</option>
-            </select>
-            <input value={search} onChange={e=>setSearch(e.target.value)} placeholder="Search..." className="border p-2 rounded w-2/3 text-sm" />
+      {/* HEADER - SINGLE LOGO G */}
+      <div className="bg-white shadow-sm sticky top-0 z-10">
+        <div className="max-w-7xl mx-auto p-3 flex flex-col md:flex-row gap-3 items-center justify-between">
+          
+          <div className="flex items-center gap-2">
+            <img src="/ssb-logo.png" alt="SSB Bazaar" className="h-10 w-10 rounded-full object-cover" />
+            <span className="font-bold text-xl">SSB BAZAAR</span>
           </div>
-          <Link href="/post" className="bg-black text-white px-5 py-2 rounded-full font-bold text-sm">+ SELL</Link>
+
+          <div className="flex flex-1 max-w-3xl gap-2 w-full">
+            <select
+              value={location}
+              onChange={(e) => setLocation(e.target.value)}
+              className="border-2 border-black rounded px-3 py-2 bg-white font-medium"
+            >
+              <option>All Pakistan</option>
+              <option>Sargodha</option>
+              <option>Lahore</option>
+              <option>Faisalabad</option>
+              <option>Islamabad</option>
+              <option>Karachi</option>
+            </select>
+            <input
+              type="text"
+              placeholder="Search Mobiles, Cars, Bikes..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="flex-1 border-2 border-black rounded px-4 py-2 outline-none"
+            />
+          </div>
+
+          <Link href="/post" className="bg-black text-white px-6 py-2 rounded-full font-bold whitespace-nowrap">
+            + SELL
+          </Link>
         </div>
-      </div>
-      <div className="p-4 max-w-6xl mx-auto">
-        <h2 className="font-bold mb-3">Fresh Ads ({filteredAds.length}) - {city}</h2>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-          {filteredAds.map((ad:any) => (
-            <Link key={ad.id} href={`/ad/${ad.id}`} className="bg-white p-3 rounded shadow">
-              <div className="w-full h-32 bg-gray-200 rounded mb-2 flex items-center justify-center text-xs">IMG</div>
-              <p className="font-bold truncate text-sm">{ad.title}</p>
-              <p className="text-green-600 font-bold text-sm">Rs {ad.price}</p>
-              <p className="text-xs text-gray-500">{ad.location}</p>
-            </Link>
+
+        {/* CATEGORY BAR G */}
+        <div className="max-w-7xl mx-auto px-3 pb-3 flex gap-2 overflow-x-auto">
+          {categories.map((cat) => (
+            <button
+              key={cat}
+              onClick={() => setCategory(cat)}
+              className={`px-4 py-1.5 rounded-full text-sm font-medium whitespace-nowrap border ${category === cat ? "bg-black text-white border-black" : "bg-white text-black border-gray-300"}`}
+            >
+              {cat}
+            </button>
           ))}
         </div>
+      </div>
+
+      {/* ADS G */}
+      <div className="max-w-7xl mx-auto p-4">
+        <h2 className="font-bold text-lg mb-4">Fresh Ads ({filteredAds.length}) - {location}</h2>
+        
+        {filteredAds.length === 0 ? (
+          <div className="text-center py-20 bg-white rounded-lg">Koi ad nahi mila G!</div>
+        ) : (
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            {filteredAds.map((ad: any) => (
+              <Link key={ad.id} href={`/ad/${ad.id}`} className="bg-white rounded-lg border overflow-hidden hover:shadow-lg transition">
+                <div className="h-40 bg-gray-200 overflow-hidden">
+                  <img src={ad.image_url || ad.image} alt={ad.title} className="w-full h-full object-cover" />
+                </div>
+                <div className="p-3">
+                  <p className="font-bold truncate">{ad.title}</p>
+                  <p className="text-green-600 font-bold">Rs {ad.price}</p>
+                  <p className="text-gray-500 text-xs truncate">{ad.location}</p>
+                </div>
+              </Link>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );
