@@ -1,55 +1,41 @@
 "use client";
 import { useState } from "react";
-import { supabase } from "@/lib/supabase";
+import { supabase } from "@/lib/supabaseClient";
 
-export default function PostAd() {
-  const [title, setTitle] = useState("");
-  const [price, setPrice] = useState("");
-  const [location, setLocation] = useState("Sargodha");
-  const [desc, setDesc] = useState("");
-  const [whatsapp, setWhatsapp] = useState("");
-  const [image, setImage] = useState<File | null>(null);
-  const [loading, setLoading] = useState(false);
+export default function PostAd(){
+const [title,setTitle]=useState("");const [price,setPrice]=useState("");const [loc,setLoc]=useState("Sargodha");const [desc,setDesc]=useState("");const [wp,setWp]=useState("");const [img,setImg]=useState<any>(null);const [loading,setLoading]=useState(false);
 
-  const handlePost = async () => {
-    if (!title ||!price) { alert("Title Price likho G!"); return; }
-    setLoading(true);
-    let imageUrl = "";
-    if (image) {
-      const fileName = `${Date.now()}-${image.name}`;
-      const { data, error } = await supabase.storage.from("ads").upload(fileName, image);
-      if (!error) {
-        const { data: urlData } = supabase.storage.from("ads").getPublicUrl(fileName);
-        imageUrl = urlData.publicUrl;
-      }
-    }
-    const { error } = await supabase.from("ads").insert([{ title, price, location, description: desc, whatsapp, image_url: imageUrl }]);
-    setLoading(false);
-    if (error) alert("Error: " + error.message);
-    else { alert("MASHALLAH G Ad Post ho gayi G!"); window.location.href = "/"; }
-  };
+const handlePost=async()=>{
+if(!title||!price){alert("Enter Title & Price");return;}
+setLoading(true);
+let url="";
+try{
+if(img){
+const name=Date.now()+"-"+img.name;
+await supabase.storage.from("ads").upload(name,img);
+const {data}=supabase.storage.from("ads").getPublicUrl(name);
+url=data.publicUrl;
+}
+await supabase.from("ads").insert([{title,price,location:loc,description:desc,whatsapp:wp,image_url:url}]);
+alert("Ad Posted Successfully!");
+window.location.href="/";
+}catch(e:any){alert(e.message);}finally{setLoading(false);}
+};
 
-  return (
-    <div className="max-w-md mx-auto p-4 bg-white rounded-xl shadow mt-6">
-      <h1 className="text-2xl font-bold text-center mb-4">+ Post Your Ad</h1>
-
-      <div className="mb-3">
-        <label className="font-bold">Ad Photo G (Zaroori)</label>
-        <input type="file" accept="image/*" onChange={(e)=>setImage(e.target.files?.[0]||null)} className="w-full border-2 p-2 rounded-lg mt-1" />
-        {image && <p className="text-green-600 text-sm">✅ {image.name} selected G!</p>}
-      </div>
-
-      <input value={title} onChange={e=>setTitle(e.target.value)} placeholder="Title - e.g. iPhone 12 for Sale" className="w-full border p-3 rounded-lg mb-3" />
-      <input value={price} onChange={e=>setPrice(e.target.value)} placeholder="Price - e.g. 50000" className="w-full border p-3 rounded-lg mb-3" />
-      <select value={location} onChange={e=>setLocation(e.target.value)} className="w-full border p-3 rounded-lg mb-3">
-        <option>Sargodha</option><option>Lalian</option><option>Lahore</option><option>Faisalabad</option>
-      </select>
-      <textarea value={desc} onChange={e=>setDesc(e.target.value)} placeholder="Description - Kitab kaisi hai, bike ka model..." className="w-full border p-3 rounded-lg mb-3" rows={3}></textarea>
-      <input value={whatsapp} onChange={e=>setWhatsapp(e.target.value)} placeholder="WhatsApp Number - 03XX-XXXXXXX" className="w-full border p-3 rounded-lg mb-3" />
-
-      <button onClick={handlePost} disabled={loading} className="w-full bg-black text-white p-3 rounded-full font-bold">
-        {loading? "Posting... G" : "Post Ad Now"}
-      </button>
-    </div>
-  );
+return(
+<div style={{maxWidth:"420px",margin:"20px auto",padding:"16px",background:"white",borderRadius:"16px",boxShadow:"0 2px 10px #ccc"}}>
+<h2 style={{textAlign:"center",fontWeight:"bold",fontSize:"22px"}}>+ Post Your Ad</h2>
+<div style={{border:"2px dashed black",padding:"12px",borderRadius:"10px",margin:"15px 0",background:"#fafafa"}}>
+<b>Upload Ad Photo</b><br/>
+<input type="file" accept="image/*" onChange={(e:any)=>setImg(e.target.files[0])} style={{marginTop:"8px"}}/>
+{img && <p style={{color:"green"}}>✅ {img.name} selected</p>}
+</div>
+<input value={title} onChange={e=>setTitle(e.target.value)} placeholder="Title - e.g. iPhone 12" style={{width:"100%",padding:"12px",marginBottom:"10px",border:"1px solid #000",borderRadius:"8px"}}/>
+<input value={price} onChange={e=>setPrice(e.target.value)} placeholder="Price - e.g. 50000" style={{width:"100%",padding:"12px",marginBottom:"10px",border:"1px solid #000",borderRadius:"8px"}}/>
+<select value={loc} onChange={e=>setLoc(e.target.value)} style={{width:"100%",padding:"12px",marginBottom:"10px",border:"1px solid #000",borderRadius:"8px"}}><option>Sargodha</option><option>Lalian</option><option>Lahore</option><option>Faisalabad</option></select>
+<textarea value={desc} onChange={e=>setDesc(e.target.value)} placeholder="Description" rows={3} style={{width:"100%",padding:"12px",marginBottom:"10px",border:"1px solid #000",borderRadius:"8px"}}></textarea>
+<input value={wp} onChange={e=>setWp(e.target.value)} placeholder="WhatsApp Number - 03XX" style={{width:"100%",padding:"12px",marginBottom:"15px",border:"1px solid #000",borderRadius:"8px"}}/>
+<button onClick={handlePost} style={{width:"100%",background:"black",color:"white",padding:"13px",borderRadius:"30px",fontWeight:"bold"}}>{loading?"Posting...":"Post Ad Now"}</button>
+</div>
+);
 }
