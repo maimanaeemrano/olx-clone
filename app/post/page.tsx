@@ -1,29 +1,37 @@
 "use client";
 import { useState } from "react";
-import { supabase } from "../lib/supabaseClient";
+import { supabase } from "@/lib/supabaseClient";
+import { useRouter } from "next/navigation";
 
 export default function PostAd() {
+  const router = useRouter();
   const [title, setTitle] = useState("");
   const [price, setPrice] = useState("");
-  const [city, setCity] = useState("");
+  const [location, setLocation] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  async function handleSubmit() {
-    const { error } = await supabase.from("ads").insert([{ title, price, city }]);
+  const handlePost = async () => {
+    setLoading(true);
+    const { error } = await supabase.from("ads").insert([
+      { title, price: Number(price), location, image_url: "https://via.placeholder.com/300" }
+    ]);
+    setLoading(false);
     if (!error) {
-      alert("Ad Posted Successfully!");
-      window.location.href = "/";
+      router.push("/");
     } else {
       alert(error.message);
     }
-  }
+  };
 
   return (
-    <div style={{ padding: "20px", maxWidth: "500px", margin: "auto" }}>
-      <h1>Post New Ad</h1>
-      <input placeholder="Title" value={title} onChange={(e) => setTitle(e.target.value)} style={{ width: "100%", padding: "10px", marginBottom: "10px" }} />
-      <input placeholder="Price" value={price} onChange={(e) => setPrice(e.target.value)} style={{ width: "100%", padding: "10px", marginBottom: "10px" }} />
-      <input placeholder="City" value={city} onChange={(e) => setCity(e.target.value)} style={{ width: "100%", padding: "10px", marginBottom: "10px" }} />
-      <button onClick={handleSubmit} style={{ width: "100%", padding: "10px" }}>Submit</button>
+    <div className="max-w-lg mx-auto p-6">
+      <h1 className="text-2xl font-bold mb-4">Post Your Ad</h1>
+      <input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Title" className="w-full border p-2 mb-3 rounded" />
+      <input value={price} onChange={(e) => setPrice(e.target.value)} placeholder="Price" type="number" className="w-full border p-2 mb-3 rounded" />
+      <input value={location} onChange={(e) => setLocation(e.target.value)} placeholder="Location" className="w-full border p-2 mb-3 rounded" />
+      <button onClick={handlePost} disabled={loading} className="w-full bg-black text-white p-3 rounded">
+        {loading ? "Posting..." : "Post Now"}
+      </button>
     </div>
   );
 }

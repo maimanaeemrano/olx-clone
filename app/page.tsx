@@ -1,29 +1,63 @@
 "use client";
-import { useEffect, useState } from "react";
-import { supabase } from "./lib/supabaseClient";
+import { useState, useEffect } from "react";
+import { supabase } from "@/lib/supabaseClient";
 import Link from "next/link";
 
+type Ad = {
+  id: string;
+  title: string;
+  price: number;
+  location: string;
+  image_url: string;
+};
+
 export default function Home() {
-  const [ads, setAds] = useState<any[]>([]);
+  const [ads, setAds] = useState<Ad[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    async function getAds() {
-      const { data } = await supabase.from("ads").select("*").order("created_at", { ascending: false });
-      if (data) setAds(data);
-    }
-    getAds();
+    const fetchAds = async () => {
+      const { data, error } = await supabase
+        .from("ads")
+        .select("*")
+        .order("created_at", { ascending: false });
+      
+      if (!error && data) {
+        setAds(data);
+      }
+      setLoading(false);
+    };
+    fetchAds();
   }, []);
 
+  if (loading) {
+    return <div className="p-10 text-center">Loading ads...</div>;
+  }
+
   return (
-    <div style={{ padding: "20px", maxWidth: "800px", margin: "auto" }}>
-      <h1>PakClassified - All Ads</h1>
-      <Link href="/post"><button style={{ padding: "10px", marginBottom: "20px" }}>Post New Ad</button></Link>
-      {ads.map((ad) => (
-        <div key={ad.id} style={{ border: "1px solid #ccc", padding: "10px", marginBottom: "10px" }}>
-          <Link href={`/ad/${ad.id}`}><h3>{ad.title} - Rs {ad.price}</h3></Link>
-          <p>{ad.city}</p>
-        </div>
-      ))}
+    <div className="p-4 max-w-7xl mx-auto">
+      <h1 className="text-2xl font-bold mb-6">Fresh Recommendations</h1>
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        {ads.map((ad) => (
+          <Link key={ad.id} href={`/ad/${ad.id}`}>
+            <div className="border rounded-lg overflow-hidden hover:shadow-lg cursor-pointer">
+              <img 
+                src={ad.image_url || "https://via.placeholder.com/300"} 
+                alt={ad.title}
+                className="w-full h-40 object-cover"
+              />
+              <div className="p-3">
+                <p className="font-bold">Rs {ad.price}</p>
+                <p className="text-sm text-gray-600 truncate">{ad.title}</p>
+                <p className="text-xs text-gray-400">{ad.location}</p>
+              </div>
+            </div>
+          </Link>
+        ))}
+      </div>
+      {ads.length === 0 && (
+        <p className="text-center text-gray-500 mt-10">No ads found. Post your first ad!</p>
+      )}
     </div>
   );
 }
